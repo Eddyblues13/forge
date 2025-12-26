@@ -198,6 +198,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 3px rgba(71, 118, 59, 0.1);
         }
         
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            font-size: 1.2em;
+            user-select: none;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+        
+        .password-toggle:hover {
+            color: #47763b;
+        }
+        
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            padding-right: 45px;
+        }
+        
         textarea {
             resize: vertical;
             min-height: 100px;
@@ -342,22 +369,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="form-group">
                     <label>Current Password</label>
-                    <input type="password" name="current_password" required>
+                    <div class="password-wrapper">
+                        <input type="password" name="current_password" id="current_password" required>
+                        <span class="password-toggle" onclick="togglePassword('current_password')">👁️</span>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label>New Password</label>
-                    <input type="password" name="new_password" required minlength="8">
+                    <div class="password-wrapper">
+                        <input type="password" name="new_password" id="new_password" required minlength="8">
+                        <span class="password-toggle" onclick="togglePassword('new_password')">👁️</span>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label>Confirm New Password</label>
-                    <input type="password" name="confirm_password" required minlength="8">
+                    <div class="password-wrapper">
+                        <input type="password" name="confirm_password" id="confirm_password" required minlength="8">
+                        <span class="password-toggle" onclick="togglePassword('confirm_password')">👁️</span>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Change Password</button>
             </form>
         </div>
     </div>
+    
+    <script>
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                toggle.textContent = '👁️';
+            }
+        }
+    </script>
 </body>
 </html>

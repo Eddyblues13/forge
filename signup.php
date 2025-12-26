@@ -196,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         select,
         textarea {
             width: 100%;
-            padding: 14px;
+            padding: 14px 45px 14px 14px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 1em;
@@ -208,6 +208,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         textarea {
             resize: vertical;
             min-height: 100px;
+            padding: 14px;
+        }
+        
+        input[type="date"],
+        input[type="file"],
+        select {
+            padding: 14px;
         }
         
         input[type="text"]:focus,
@@ -220,6 +227,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: #47763b;
             background: white;
             box-shadow: 0 0 0 3px rgba(71, 118, 59, 0.1);
+        }
+        
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            font-size: 1.2em;
+            user-select: none;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+        
+        .password-toggle:hover {
+            color: #47763b;
+        }
+        
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            padding-right: 45px;
         }
         
         input[type="file"] {
@@ -402,12 +436,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password">Password <span class="required">*</span></label>
-                        <input type="password" id="password" name="password" required minlength="8">
+                        <div class="password-wrapper">
+                            <input type="password" id="password" name="password" required minlength="8">
+                            <span class="password-toggle" onclick="togglePassword('password')">👁️</span>
+                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="confirm_password">Confirm Password <span class="required">*</span></label>
-                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                            <span class="password-toggle" onclick="togglePassword('confirm_password')">👁️</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -488,5 +528,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
     </div>
+    
+    <script>
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                toggle.textContent = '👁️';
+            }
+        }
+    </script>
 </body>
 </html>
