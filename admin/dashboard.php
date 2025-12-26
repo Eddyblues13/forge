@@ -435,6 +435,26 @@ $pending_withdrawal_requests = $pdo->query("
             border-radius: 10px;
         }
         
+        #idPreview {
+            text-align: center;
+            margin: 20px 0;
+            min-height: 300px;
+        }
+        
+        #idPreview iframe {
+            width: 100%;
+            min-height: 500px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+        
+        #idPreview img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+        
         @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -598,9 +618,9 @@ $pending_withdrawal_requests = $pdo->query("
                                 <td><?php echo ucfirst(str_replace('_', ' ', $id_ver['id_type'])); ?></td>
                                 <td><?php echo date('M d, Y', strtotime($id_ver['submitted_at'])); ?></td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="viewID(<?php echo $id_ver['id']; ?>, '<?php echo htmlspecialchars($id_ver['id_file_path'], ENT_QUOTES); ?>')">View</button>
-                                    <button class="btn btn-sm btn-success" onclick="verifyID(<?php echo $id_ver['id']; ?>, 'approved')">Approve</button>
-                                    <button class="btn btn-sm btn-danger" onclick="verifyID(<?php echo $id_ver['id']; ?>, 'rejected')">Reject</button>
+                                    <button class="btn btn-sm btn-primary" onclick="viewID(<?php echo $id_ver['id']; ?>, '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($id_ver['id_file_path']), ENT_QUOTES); ?>')">View</button>
+                                    <button class="btn btn-sm btn-success" onclick="verifyID(<?php echo $id_ver['id']; ?>, 'approved', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($id_ver['id_file_path']), ENT_QUOTES); ?>')">Approve</button>
+                                    <button class="btn btn-sm btn-danger" onclick="verifyID(<?php echo $id_ver['id']; ?>, 'rejected', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($id_ver['id_file_path']), ENT_QUOTES); ?>')">Reject</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -701,8 +721,10 @@ $pending_withdrawal_requests = $pdo->query("
     <!-- ID View Modal -->
     <div id="idModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-bottom: 20px;">ID Verification</h2>
-            <div id="idPreview"></div>
+            <h2 style="margin-bottom: 20px;">ID Verification Document</h2>
+            <div id="idPreview" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                <p style="color: #666;">Click "View" button to load document</p>
+            </div>
             <form id="verifyForm" style="margin-top: 20px;">
                 <input type="hidden" id="verify_id" name="id">
                 <input type="hidden" id="verify_status" name="status">
@@ -756,7 +778,16 @@ $pending_withdrawal_requests = $pdo->query("
         
         function viewID(id, filePath) {
             document.getElementById('verify_id').value = id;
-            document.getElementById('idPreview').innerHTML = '<img src="' + filePath + '" alt="ID Document" class="id-preview">';
+            const fileExt = filePath.split('.').pop().toLowerCase();
+            let previewHTML = '';
+            
+            if (fileExt === 'pdf') {
+                previewHTML = '<iframe src="' + filePath + '" style="width: 100%; height: 500px; border: 2px solid #e0e0e0; border-radius: 10px;" type="application/pdf"></iframe>';
+            } else {
+                previewHTML = '<img src="' + filePath + '" alt="ID Document" class="id-preview" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;">';
+            }
+            
+            document.getElementById('idPreview').innerHTML = previewHTML;
             document.getElementById('idModal').style.display = 'flex';
         }
         
@@ -764,10 +795,26 @@ $pending_withdrawal_requests = $pdo->query("
             document.getElementById('idModal').style.display = 'none';
         }
         
-        function verifyID(id, status) {
+        function verifyID(id, status, filePath) {
             document.getElementById('verify_id').value = id;
             document.getElementById('verify_status').value = status;
-            document.getElementById('idPreview').innerHTML = '';
+            
+            // Show the document preview
+            if (filePath) {
+                const fileExt = filePath.split('.').pop().toLowerCase();
+                let previewHTML = '';
+                
+                if (fileExt === 'pdf') {
+                    previewHTML = '<iframe src="' + filePath + '" style="width: 100%; height: 500px; border: 2px solid #e0e0e0; border-radius: 10px;" type="application/pdf"></iframe>';
+                } else {
+                    previewHTML = '<img src="' + filePath + '" alt="ID Document" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;">';
+                }
+                
+                document.getElementById('idPreview').innerHTML = previewHTML;
+            } else {
+                document.getElementById('idPreview').innerHTML = '<p style="color: #666; padding: 40px;">Document preview unavailable.</p>';
+            }
+            
             document.getElementById('idModal').style.display = 'flex';
         }
         

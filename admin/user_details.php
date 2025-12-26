@@ -317,7 +317,7 @@ $id_verifications = $stmt->fetchAll();
                                 <td><span class="status <?php echo $id_ver['verification_status']; ?>"><?php echo ucfirst($id_ver['verification_status']); ?></span></td>
                                 <td><?php echo date('M d, Y', strtotime($id_ver['submitted_at'])); ?></td>
                                 <td><?php echo $id_ver['verified_at'] ? date('M d, Y', strtotime($id_ver['verified_at'])) : 'N/A'; ?></td>
-                                <td><a href="<?php echo htmlspecialchars($id_ver['id_file_path']); ?>" target="_blank" class="btn btn-primary btn-sm">View ID</a></td>
+                                <td><a href="../view_file.php?file=<?php echo urlencode($id_ver['id_file_path']); ?>" target="_blank" class="btn btn-primary btn-sm">View ID</a></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
