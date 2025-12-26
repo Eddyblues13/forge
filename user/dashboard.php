@@ -69,26 +69,37 @@ unset($_SESSION['success'], $_SESSION['error']);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f7fa;
             color: #333;
+            line-height: 1.6;
         }
         
         .header {
             background: linear-gradient(135deg, #47763b 0%, #3a5f2f 100%);
             color: white;
-            padding: 20px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .header-content {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            min-height: 70px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .logo h1 {
-            font-size: 1.8em;
+            font-size: 1.5em;
             font-weight: 700;
         }
         
@@ -98,94 +109,174 @@ unset($_SESSION['success'], $_SESSION['error']);
             gap: 20px;
         }
         
+        .user-welcome {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95em;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            align-items: center;
         }
         
         .nav-links a {
             color: white;
             text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: background 0.3s;
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 0.95em;
+            font-weight: 500;
+            white-space: nowrap;
         }
         
         .nav-links a:hover {
             background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+            padding: 8px;
+        }
+        
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+        
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 30px auto;
             padding: 0 20px;
         }
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
         }
         
         .stat-card {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border-left: 4px solid #47763b;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(71, 118, 59, 0.1) 0%, rgba(58, 95, 47, 0.05) 100%);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
         
         .stat-card h3 {
             color: #666;
-            font-size: 0.9em;
-            margin-bottom: 10px;
+            font-size: 0.85em;
+            margin-bottom: 15px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            font-weight: 600;
         }
         
         .stat-card .amount {
-            font-size: 2.5em;
+            font-size: 2.8em;
             font-weight: 700;
             color: #47763b;
+            position: relative;
+            z-index: 1;
         }
         
         .card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
             margin-bottom: 30px;
+            transition: box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
         
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
             border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .card-header h2 {
             color: #333;
-            font-size: 1.5em;
+            font-size: 1.6em;
+            font-weight: 700;
         }
         
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
             display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .btn-primary {
@@ -194,8 +285,8 @@ unset($_SESSION['success'], $_SESSION['error']);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(71, 118, 59, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(71, 118, 59, 0.4);
         }
         
         .btn-secondary {
@@ -203,18 +294,24 @@ unset($_SESSION['success'], $_SESSION['error']);
             color: white;
         }
         
-        .btn-danger {
-            background: #dc3545;
-            color: white;
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
         
         th, td {
-            padding: 12px;
+            padding: 15px;
             text-align: left;
             border-bottom: 1px solid #f0f0f0;
         }
@@ -222,14 +319,22 @@ unset($_SESSION['success'], $_SESSION['error']);
         th {
             background: #f8f9fa;
             font-weight: 600;
-            color: #666;
+            color: #555;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
         }
         
         .status {
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: 600;
+            display: inline-block;
         }
         
         .status.pending {
@@ -249,8 +354,8 @@ unset($_SESSION['success'], $_SESSION['error']);
         
         .verification-badge {
             display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
             font-size: 0.9em;
             font-weight: 600;
         }
@@ -273,45 +378,62 @@ unset($_SESSION['success'], $_SESSION['error']);
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 2000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(5px);
         }
         
         .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 550px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 600;
             color: #333;
+            font-size: 0.95em;
         }
         
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1em;
+            transition: all 0.3s;
+            font-family: inherit;
         }
         
         .form-group input:focus,
@@ -319,25 +441,147 @@ unset($_SESSION['success'], $_SESSION['error']);
         .form-group textarea:focus {
             outline: none;
             border-color: #47763b;
+            box-shadow: 0 0 0 3px rgba(71, 118, 59, 0.1);
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 8px;
+            color: #666;
+            font-size: 0.85em;
+        }
+        
+        .error, .success {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            border-left: 4px solid #c33;
+        }
+        
+        .success {
+            background: #efe;
+            color: #3c3;
+            border-left: 4px solid #3c3;
+        }
+        
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
         }
         
         @media (max-width: 768px) {
             .header-content {
-                flex-direction: column;
-                gap: 15px;
+                flex-wrap: wrap;
+                padding: 15px 20px;
+            }
+            
+            .menu-toggle {
+                display: flex;
             }
             
             .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                gap: 0;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,255,255,0.2);
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .nav-links a {
+                width: 100%;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 5px;
+            }
+            
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .user-welcome {
+                font-size: 0.9em;
             }
             
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .stat-card {
+                padding: 25px;
+            }
+            
+            .stat-card .amount {
+                font-size: 2.2em;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .table-wrapper {
+                margin: 0 -20px;
+                padding: 0 20px;
             }
             
             table {
                 font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+            }
+            
+            .modal-content {
+                padding: 25px;
+                width: 95%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 1.2em;
+            }
+            
+            .user-avatar {
+                width: 35px;
+                height: 35px;
+                font-size: 1em;
+            }
+            
+            .stat-card .amount {
+                font-size: 2em;
             }
         }
     </style>
@@ -346,18 +590,22 @@ unset($_SESSION['success'], $_SESSION['error']);
     <div class="header">
         <div class="header-content">
             <div class="logo">
-                <h1>Forge Fund Dashboard</h1>
+                <h1>Forge Fund</h1>
             </div>
             <div class="user-info">
-                <div class="nav-links">
+                <div class="user-welcome">
+                    <div class="user-avatar"><?php echo strtoupper(substr($user['first_name'], 0, 1)); ?></div>
+                    <span>Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</span>
+                </div>
+                <div class="menu-toggle" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="nav-links" id="navLinks">
                     <a href="dashboard.php">Dashboard</a>
                     <a href="settings.php">Settings</a>
                     <a href="../logout.php">Logout</a>
-                    <a href="../login.php" style="background: rgba(255,255,255,0.2); border-radius: 5px;">Login</a>
-                    <a href="../signup.php" style="background: rgba(255,255,255,0.2); border-radius: 5px;">Sign Up</a>
-                </div>
-                <div>
-                    Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!
                 </div>
             </div>
         </div>
@@ -411,8 +659,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <h2>Recent Transactions</h2>
             </div>
             <?php if (empty($transactions)): ?>
-                <p>No transactions yet.</p>
+                <p style="text-align: center; color: #666; padding: 40px;">No transactions yet.</p>
             <?php else: ?>
+                <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -437,6 +686,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
             <?php endif; ?>
         </div>
         
@@ -445,8 +695,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <h2>Withdrawal Requests</h2>
             </div>
             <?php if (empty($withdrawals)): ?>
-                <p>No withdrawal requests yet.</p>
+                <p style="text-align: center; color: #666; padding: 40px;">No withdrawal requests yet.</p>
             <?php else: ?>
+                <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -467,6 +718,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -515,6 +767,13 @@ unset($_SESSION['success'], $_SESSION['error']);
     </div>
     
     <script>
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const menuToggle = document.querySelector('.menu-toggle');
+            navLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        }
+        
         function openWithdrawalModal() {
             document.getElementById('withdrawalModal').style.display = 'flex';
         }
@@ -529,6 +788,18 @@ unset($_SESSION['success'], $_SESSION['error']);
                 closeWithdrawalModal();
             }
         }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navLinks = document.getElementById('navLinks');
+            const menuToggle = document.querySelector('.menu-toggle');
+            const userInfo = document.querySelector('.user-info');
+            
+            if (!userInfo.contains(event.target) && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                menuToggle.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>

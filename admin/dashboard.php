@@ -74,8 +74,11 @@ $pending_withdrawal_requests = $pdo->query("
         .header {
             background: linear-gradient(135deg, #47763b 0%, #3a5f2f 100%);
             color: white;
-            padding: 20px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .header-content {
@@ -85,28 +88,78 @@ $pending_withdrawal_requests = $pdo->query("
             display: flex;
             justify-content: space-between;
             align-items: center;
+            min-height: 70px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .logo h1 {
-            font-size: 1.8em;
+            font-size: 1.5em;
             font-weight: 700;
+        }
+        
+        .admin-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 10px;
         }
         
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            align-items: center;
         }
         
         .nav-links a {
             color: white;
             text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: background 0.3s;
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 0.95em;
+            font-weight: 500;
+            white-space: nowrap;
         }
         
         .nav-links a:hover {
             background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+            padding: 8px;
+        }
+        
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+        
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
         }
         
         .container {
@@ -117,69 +170,97 @@ $pending_withdrawal_requests = $pdo->query("
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
         }
         
         .stat-card {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border-left: 4px solid #47763b;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(71, 118, 59, 0.1) 0%, rgba(58, 95, 47, 0.05) 100%);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
         
         .stat-card h3 {
             color: #666;
-            font-size: 0.9em;
-            margin-bottom: 10px;
+            font-size: 0.85em;
+            margin-bottom: 15px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            font-weight: 600;
         }
         
         .stat-card .amount {
-            font-size: 2.2em;
+            font-size: 2.5em;
             font-weight: 700;
             color: #47763b;
+            position: relative;
+            z-index: 1;
         }
         
         .card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
             margin-bottom: 30px;
+            transition: box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
         
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
             border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .card-header h2 {
             color: #333;
-            font-size: 1.5em;
+            font-size: 1.6em;
+            font-weight: 700;
         }
         
         .btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 8px;
-            font-size: 0.9em;
+            border-radius: 10px;
+            font-size: 0.95em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
             display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .btn-primary {
@@ -187,9 +268,19 @@ $pending_withdrawal_requests = $pdo->query("
             color: white;
         }
         
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(71, 118, 59, 0.4);
+        }
+        
         .btn-success {
             background: #28a745;
             color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
         }
         
         .btn-danger {
@@ -197,23 +288,39 @@ $pending_withdrawal_requests = $pdo->query("
             color: white;
         }
         
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+        
         .btn-warning {
             background: #ffc107;
             color: #333;
         }
         
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+        }
+        
         .btn-sm {
-            padding: 6px 12px;
+            padding: 8px 16px;
             font-size: 0.85em;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
         
         th, td {
-            padding: 12px;
+            padding: 15px;
             text-align: left;
             border-bottom: 1px solid #f0f0f0;
         }
@@ -221,14 +328,22 @@ $pending_withdrawal_requests = $pdo->query("
         th {
             background: #f8f9fa;
             font-weight: 600;
-            color: #666;
+            color: #555;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
         }
         
         .status {
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: 600;
+            display: inline-block;
         }
         
         .status.pending {
@@ -249,66 +364,167 @@ $pending_withdrawal_requests = $pdo->query("
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 2000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(5px);
         }
         
         .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 40px;
+            border-radius: 20px;
             max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 600;
             color: #333;
+            font-size: 0.95em;
         }
         
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1em;
+            transition: all 0.3s;
+            font-family: inherit;
         }
         
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: #47763b;
+            box-shadow: 0 0 0 3px rgba(71, 118, 59, 0.1);
         }
         
         .id-preview {
             max-width: 100%;
             margin-top: 10px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
         }
         
         @media (max-width: 768px) {
+            .header-content {
+                flex-wrap: wrap;
+                padding: 15px 20px;
+            }
+            
+            .menu-toggle {
+                display: flex;
+            }
+            
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                gap: 0;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,255,255,0.2);
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .nav-links a {
+                width: 100%;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 5px;
+            }
+            
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .stat-card {
+                padding: 25px;
+            }
+            
+            .stat-card .amount {
+                font-size: 2em;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .table-wrapper {
+                margin: 0 -20px;
+                padding: 0 20px;
             }
             
             table {
-                font-size: 0.85em;
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+            }
+            
+            .modal-content {
+                padding: 25px;
+                width: 95%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 1.2em;
+            }
+            
+            .admin-badge {
+                font-size: 0.7em;
+                padding: 3px 10px;
+            }
+            
+            .stat-card .amount {
+                font-size: 1.8em;
             }
         }
     </style>
@@ -317,14 +533,17 @@ $pending_withdrawal_requests = $pdo->query("
     <div class="header">
         <div class="header-content">
             <div class="logo">
-                <h1>Admin Dashboard</h1>
+                <h1>Admin Dashboard<span class="admin-badge">ADMIN</span></h1>
             </div>
-            <div class="nav-links">
+            <div class="menu-toggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="nav-links" id="navLinks">
                 <a href="dashboard.php">Dashboard</a>
                 <a href="users.php">Users</a>
                 <a href="../logout.php">Logout</a>
-                <a href="login.php" style="background: rgba(255,255,255,0.2); border-radius: 5px;">Admin Login</a>
-                <a href="../login.php" style="background: rgba(255,255,255,0.2); border-radius: 5px;">User Login</a>
             </div>
         </div>
     </div>
@@ -358,8 +577,9 @@ $pending_withdrawal_requests = $pdo->query("
                 <h2>Pending ID Verifications</h2>
             </div>
             <?php if (empty($pending_ids)): ?>
-                <p>No pending ID verifications.</p>
+                <p style="text-align: center; color: #666; padding: 40px;">No pending ID verifications.</p>
             <?php else: ?>
+                <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -386,6 +606,7 @@ $pending_withdrawal_requests = $pdo->query("
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
             <?php endif; ?>
         </div>
         
@@ -394,8 +615,9 @@ $pending_withdrawal_requests = $pdo->query("
                 <h2>Pending Withdrawal Requests</h2>
             </div>
             <?php if (empty($pending_withdrawal_requests)): ?>
-                <p>No pending withdrawal requests.</p>
+                <p style="text-align: center; color: #666; padding: 40px;">No pending withdrawal requests.</p>
             <?php else: ?>
+                <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -422,6 +644,7 @@ $pending_withdrawal_requests = $pdo->query("
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
             <?php endif; ?>
         </div>
         
@@ -430,8 +653,9 @@ $pending_withdrawal_requests = $pdo->query("
                 <h2>Recent Users</h2>
             </div>
             <?php if (empty($recent_users)): ?>
-                <p>No users yet.</p>
+                <p style="text-align: center; color: #666; padding: 40px;">No users yet.</p>
             <?php else: ?>
+                <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -469,6 +693,7 @@ $pending_withdrawal_requests = $pdo->query("
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -522,6 +747,13 @@ $pending_withdrawal_requests = $pdo->query("
     </div>
     
     <script>
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const menuToggle = document.querySelector('.menu-toggle');
+            navLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        }
+        
         function viewID(id, filePath) {
             document.getElementById('verify_id').value = id;
             document.getElementById('idPreview').innerHTML = '<img src="' + filePath + '" alt="ID Document" class="id-preview">';
@@ -628,6 +860,18 @@ $pending_withdrawal_requests = $pdo->query("
                 closeFundModal();
             }
         }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navLinks = document.getElementById('navLinks');
+            const menuToggle = document.querySelector('.menu-toggle');
+            const headerContent = document.querySelector('.header-content');
+            
+            if (!headerContent.contains(event.target) && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                menuToggle.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>
