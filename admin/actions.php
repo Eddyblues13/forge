@@ -116,7 +116,7 @@ try {
             $stmt->execute([$status, $admin_id, $notes, $id]);
             
             $pdo->commit();
-            echo json_encode(['success' => true, 'message' => 'Payment proof verification updated']);
+            echo json_encode(['success' => true, 'message' => 'Payment proof ' . $status . ' successfully']);
             break;
             
         case 'process_withdrawal':
