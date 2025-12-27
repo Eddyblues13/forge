@@ -2,9 +2,11 @@
 config.php
 config/config.php
 
+
 # Upload directories (user-uploaded files)
 uploads/
 uploads/ids/
+/uploads
 
 # Environment and local configuration
 .env

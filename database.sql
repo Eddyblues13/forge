@@ -86,6 +86,23 @@ CREATE TABLE IF NOT EXISTS transactions (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Payment proofs table
+CREATE TABLE IF NOT EXISTS payment_proofs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    proof_file_path VARCHAR(500) NOT NULL,
+    verification_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    verified_by INT NULL,
+    verification_notes TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    verified_at TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (verified_by) REFERENCES admins(id) ON DELETE SET NULL,
+    INDEX idx_user_id (user_id),
+    INDEX idx_verification_status (verification_status),
+    INDEX idx_submitted_at (submitted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Withdrawal requests table
 CREATE TABLE IF NOT EXISTS withdrawal_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,

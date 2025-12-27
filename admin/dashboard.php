@@ -22,6 +22,7 @@ if (!$admin) {
 $total_users = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
 $active_users = $pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1")->fetchColumn();
 $pending_verifications = $pdo->query("SELECT COUNT(*) FROM id_verifications WHERE verification_status = 'pending'")->fetchColumn();
+$pending_payment_proofs = $pdo->query("SELECT COUNT(*) FROM payment_proofs WHERE verification_status = 'pending'")->fetchColumn();
 $pending_withdrawals = $pdo->query("SELECT COUNT(*) FROM withdrawal_requests WHERE status = 'pending'")->fetchColumn();
 $total_balance = $pdo->query("SELECT SUM(account_balance) FROM users")->fetchColumn() ?? 0;
 
@@ -41,6 +42,15 @@ $pending_ids = $pdo->query("
     JOIN users u ON iv.user_id = u.id
     WHERE iv.verification_status = 'pending'
     ORDER BY iv.submitted_at ASC
+")->fetchAll();
+
+// Get pending payment proofs
+$pending_payment_proof_list = $pdo->query("
+    SELECT pp.*, u.first_name, u.last_name, u.email
+    FROM payment_proofs pp
+    JOIN users u ON pp.user_id = u.id
+    WHERE pp.verification_status = 'pending'
+    ORDER BY pp.submitted_at ASC
 ")->fetchAll();
 
 // Get pending withdrawal requests
@@ -583,6 +593,10 @@ $pending_withdrawal_requests = $pdo->query("
                 <div class="amount"><?php echo $pending_verifications; ?></div>
             </div>
             <div class="stat-card">
+                <h3>Pending Payment Proofs</h3>
+                <div class="amount"><?php echo $pending_payment_proofs; ?></div>
+            </div>
+            <div class="stat-card">
                 <h3>Pending Withdrawals</h3>
                 <div class="amount"><?php echo $pending_withdrawals; ?></div>
             </div>
@@ -621,6 +635,42 @@ $pending_withdrawal_requests = $pdo->query("
                                     <button class="btn btn-sm btn-primary" onclick="viewID(<?php echo $id_ver['id']; ?>, '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($id_ver['id_file_path']), ENT_QUOTES); ?>')">View</button>
                                     <button class="btn btn-sm btn-success" onclick="verifyID(<?php echo $id_ver['id']; ?>, 'approved', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($id_ver['id_file_path']), ENT_QUOTES); ?>')">Approve</button>
                                     <button class="btn btn-sm btn-danger" onclick="verifyID(<?php echo $id_ver['id']; ?>, 'rejected', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($id_ver['id_file_path']), ENT_QUOTES); ?>')">Reject</button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                </div>
+            <?php endif; ?>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Pending Payment Proofs</h2>
+            </div>
+            <?php if (empty($pending_payment_proof_list)): ?>
+                <p style="text-align: center; color: #666; padding: 40px;">No pending payment proofs.</p>
+            <?php else: ?>
+                <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($pending_payment_proof_list as $proof): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($proof['first_name'] . ' ' . $proof['last_name']); ?></td>
+                                <td><?php echo htmlspecialchars($proof['email']); ?></td>
+                                <td><?php echo date('M d, Y', strtotime($proof['submitted_at'])); ?></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewPaymentProof(<?php echo $proof['id']; ?>, '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">View</button>
+                                    <button class="btn btn-sm btn-success" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'approved', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Approve</button>
+                                    <button class="btn btn-sm btn-danger" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'rejected', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Reject</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -768,6 +818,28 @@ $pending_withdrawal_requests = $pdo->query("
         </div>
     </div>
     
+    <!-- Payment Proof View Modal -->
+    <div id="paymentProofModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">Payment Proof Document</h2>
+            <div id="paymentProofPreview" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                <p style="color: #666;">Click "View" button to load document</p>
+            </div>
+            <form id="verifyPaymentProofForm" style="margin-top: 20px;">
+                <input type="hidden" id="verify_payment_proof_id" name="id">
+                <input type="hidden" id="verify_payment_proof_status" name="status">
+                <div class="form-group">
+                    <label>Notes (optional)</label>
+                    <textarea id="verify_payment_proof_notes" name="notes" rows="3"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Submit</button>
+                    <button type="button" class="btn btn-danger" onclick="closePaymentProofModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
         function toggleMenu() {
             const navLinks = document.getElementById('navLinks');
@@ -897,14 +969,79 @@ $pending_withdrawal_requests = $pdo->query("
             window.location.href = 'withdrawal_details.php?id=' + id;
         }
         
+        function viewPaymentProof(id, filePath) {
+            document.getElementById('verify_payment_proof_id').value = id;
+            const fileExt = filePath.split('.').pop().toLowerCase();
+            let previewHTML = '';
+            
+            if (fileExt === 'pdf') {
+                previewHTML = '<iframe src="' + filePath + '" style="width: 100%; height: 500px; border: 2px solid #e0e0e0; border-radius: 10px;" type="application/pdf"></iframe>';
+            } else {
+                previewHTML = '<img src="' + filePath + '" alt="Payment Proof" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;">';
+            }
+            
+            document.getElementById('paymentProofPreview').innerHTML = previewHTML;
+            document.getElementById('paymentProofModal').style.display = 'flex';
+        }
+        
+        function closePaymentProofModal() {
+            document.getElementById('paymentProofModal').style.display = 'none';
+        }
+        
+        function verifyPaymentProof(id, status, filePath) {
+            document.getElementById('verify_payment_proof_id').value = id;
+            document.getElementById('verify_payment_proof_status').value = status;
+            
+            // Show the document preview
+            if (filePath) {
+                const fileExt = filePath.split('.').pop().toLowerCase();
+                let previewHTML = '';
+                
+                if (fileExt === 'pdf') {
+                    previewHTML = '<iframe src="' + filePath + '" style="width: 100%; height: 500px; border: 2px solid #e0e0e0; border-radius: 10px;" type="application/pdf"></iframe>';
+                } else {
+                    previewHTML = '<img src="' + filePath + '" alt="Payment Proof" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;">';
+                }
+                
+                document.getElementById('paymentProofPreview').innerHTML = previewHTML;
+            } else {
+                document.getElementById('paymentProofPreview').innerHTML = '<p style="color: #666; padding: 40px;">Document preview unavailable.</p>';
+            }
+            
+            document.getElementById('paymentProofModal').style.display = 'flex';
+        }
+        
+        document.getElementById('verifyPaymentProofForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'verify_payment_proof');
+            
+            fetch('actions.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error processing payment proof verification');
+                }
+            });
+        });
+        
         window.onclick = function(event) {
             const idModal = document.getElementById('idModal');
             const fundModal = document.getElementById('fundModal');
+            const paymentProofModal = document.getElementById('paymentProofModal');
             if (event.target == idModal) {
                 closeIDModal();
             }
             if (event.target == fundModal) {
                 closeFundModal();
+            }
+            if (event.target == paymentProofModal) {
+                closePaymentProofModal();
             }
         }
         
