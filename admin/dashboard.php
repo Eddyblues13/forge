@@ -61,6 +61,11 @@ $pending_withdrawal_requests = $pdo->query("
     WHERE wr.status = 'pending'
     ORDER BY wr.created_at ASC
 ")->fetchAll();
+
+// Get success/error messages
+$success = $_SESSION['success'] ?? '';
+$error = $_SESSION['error'] ?? '';
+unset($_SESSION['success'], $_SESSION['error']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -579,6 +584,18 @@ $pending_withdrawal_requests = $pdo->query("
     </div>
     
     <div class="container">
+        <?php if ($error): ?>
+            <div class="error" style="background: #fee; color: #c33; padding: 15px 20px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #c33; animation: slideDown 0.3s ease-out;">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+        
+        <?php if ($success): ?>
+            <div class="success" style="background: #efe; color: #3c3; padding: 15px 20px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #3c3; animation: slideDown 0.3s ease-out;">
+                <?php echo htmlspecialchars($success); ?>
+            </div>
+        <?php endif; ?>
+        
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Total Users</h3>
@@ -668,9 +685,9 @@ $pending_withdrawal_requests = $pdo->query("
                                 <td><?php echo htmlspecialchars($proof['email']); ?></td>
                                 <td><?php echo date('M d, Y', strtotime($proof['submitted_at'])); ?></td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="viewPaymentProof(<?php echo $proof['id']; ?>, '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">View</button>
-                                    <button class="btn btn-sm btn-success" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'approved', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Approve</button>
-                                    <button class="btn btn-sm btn-danger" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'rejected', '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Reject</button>
+                                    <button class="btn btn-sm btn-primary" onclick="viewPaymentProof(<?php echo $proof['id']; ?>, '<?php echo htmlspecialchars('../view_file?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">View</button>
+                                    <button class="btn btn-sm btn-success" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'approved', '<?php echo htmlspecialchars('../view_file?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Approve</button>
+                                    <button class="btn btn-sm btn-danger" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'rejected', '<?php echo htmlspecialchars('../view_file?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Reject</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -895,7 +912,7 @@ $pending_withdrawal_requests = $pdo->query("
             const formData = new FormData(this);
             formData.append('action', 'verify_id');
             
-            fetch('actions.php', {
+            fetch('actions', {
                 method: 'POST',
                 body: formData
             })
@@ -927,7 +944,7 @@ $pending_withdrawal_requests = $pdo->query("
             const formData = new FormData(this);
             formData.append('action', 'fund_account');
             
-            fetch('actions.php', {
+            fetch('actions', {
                 method: 'POST',
                 body: formData
             })
@@ -951,7 +968,7 @@ $pending_withdrawal_requests = $pdo->query("
             formData.append('id', id);
             formData.append('status', status);
             
-            fetch('actions.php', {
+            fetch('actions', {
                 method: 'POST',
                 body: formData
             })
@@ -970,18 +987,29 @@ $pending_withdrawal_requests = $pdo->query("
         }
         
         function viewPaymentProof(id, filePath) {
+            // Set the ID but don't set status (only for viewing)
             document.getElementById('verify_payment_proof_id').value = id;
-            const fileExt = filePath.split('.').pop().toLowerCase();
+            document.getElementById('verify_payment_proof_status').value = '';
+            
+            // Show loading
+            document.getElementById('paymentProofPreview').innerHTML = '<p style="color: #666; padding: 40px;">Loading document...</p>';
+            document.getElementById('paymentProofModal').style.display = 'flex';
+            
+            // Extract file extension from the file path
+            // filePath format: '../view_file?file=uploads/payment_proofs/file.pdf'
+            const urlMatch = filePath.match(/file=([^&]+)/);
+            const actualFilePath = urlMatch ? decodeURIComponent(urlMatch[1]) : filePath;
+            const fileExt = actualFilePath.split('.').pop().toLowerCase();
             let previewHTML = '';
             
+            // Create image or iframe based on file type
             if (fileExt === 'pdf') {
                 previewHTML = '<iframe src="' + filePath + '" style="width: 100%; height: 500px; border: 2px solid #e0e0e0; border-radius: 10px;" type="application/pdf"></iframe>';
             } else {
-                previewHTML = '<img src="' + filePath + '" alt="Payment Proof" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;">';
+                previewHTML = '<img src="' + filePath + '" alt="Payment Proof" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;" onerror="this.parentElement.innerHTML=\'<p style=\\\'color: #c33; padding: 40px;\\\'>Error loading image. Please check the file path.</p>\'">';
             }
             
             document.getElementById('paymentProofPreview').innerHTML = previewHTML;
-            document.getElementById('paymentProofModal').style.display = 'flex';
         }
         
         function closePaymentProofModal() {
@@ -994,41 +1022,72 @@ $pending_withdrawal_requests = $pdo->query("
             
             // Show the document preview
             if (filePath) {
-                const fileExt = filePath.split('.').pop().toLowerCase();
+                // Extract file extension from the file path
+                // filePath format: '../view_file?file=uploads/payment_proofs/file.pdf'
+                const urlMatch = filePath.match(/file=([^&]+)/);
+                const actualFilePath = urlMatch ? decodeURIComponent(urlMatch[1]) : filePath;
+                const fileExt = actualFilePath.split('.').pop().toLowerCase();
                 let previewHTML = '';
+                
+                // Show loading
+                document.getElementById('paymentProofPreview').innerHTML = '<p style="color: #666; padding: 40px;">Loading document...</p>';
+                document.getElementById('paymentProofModal').style.display = 'flex';
                 
                 if (fileExt === 'pdf') {
                     previewHTML = '<iframe src="' + filePath + '" style="width: 100%; height: 500px; border: 2px solid #e0e0e0; border-radius: 10px;" type="application/pdf"></iframe>';
                 } else {
-                    previewHTML = '<img src="' + filePath + '" alt="Payment Proof" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;">';
+                    previewHTML = '<img src="' + filePath + '" alt="Payment Proof" style="max-width: 100%; height: auto; border: 2px solid #e0e0e0; border-radius: 10px;" onerror="this.parentElement.innerHTML=\'<p style=\\\'color: #c33; padding: 40px;\\\'>Error loading image. Please check the file path.</p>\'">';
                 }
                 
                 document.getElementById('paymentProofPreview').innerHTML = previewHTML;
             } else {
                 document.getElementById('paymentProofPreview').innerHTML = '<p style="color: #666; padding: 40px;">Document preview unavailable.</p>';
+                document.getElementById('paymentProofModal').style.display = 'flex';
             }
-            
-            document.getElementById('paymentProofModal').style.display = 'flex';
         }
         
-        document.getElementById('verifyPaymentProofForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('action', 'verify_payment_proof');
-            
-            fetch('actions.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message || 'Error processing payment proof verification');
-                }
+        // Handle payment proof form submission (wait for DOM to be ready)
+        const verifyPaymentProofForm = document.getElementById('verifyPaymentProofForm');
+        if (verifyPaymentProofForm) {
+            verifyPaymentProofForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                formData.append('action', 'verify_payment_proof');
+                
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Processing...';
+                
+                fetch('actions', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Show success message via URL parameter and reload
+                        const message = data.message || 'Payment proof verified successfully';
+                        window.location.href = 'dashboard?success=' + encodeURIComponent(message);
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                        // Show error message
+                        const errorMsg = data.message || 'Error processing payment proof verification';
+                        alert(errorMsg);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing the request. Please try again.');
+                });
             });
-        });
+        }
         
         window.onclick = function(event) {
             const idModal = document.getElementById('idModal');
