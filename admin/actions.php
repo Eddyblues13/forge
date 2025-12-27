@@ -95,6 +95,30 @@ try {
             echo json_encode(['success' => true, 'message' => 'Account funded successfully']);
             break;
             
+        case 'verify_payment_proof':
+            $id = intval($_POST['id'] ?? 0);
+            $status = sanitize($_POST['status'] ?? '');
+            $notes = sanitize($_POST['notes'] ?? '');
+            
+            if (!in_array($status, ['approved', 'rejected'])) {
+                echo json_encode(['success' => false, 'message' => 'Invalid status']);
+                exit;
+            }
+            
+            $pdo->beginTransaction();
+            
+            // Update payment proof verification status
+            $stmt = $pdo->prepare("
+                UPDATE payment_proofs 
+                SET verification_status = ?, verified_by = ?, verified_at = NOW(), verification_notes = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([$status, $admin_id, $notes, $id]);
+            
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Payment proof verification updated']);
+            break;
+            
         case 'process_withdrawal':
             $id = intval($_POST['id'] ?? 0);
             $status = sanitize($_POST['status'] ?? '');

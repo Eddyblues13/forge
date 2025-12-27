@@ -47,6 +47,19 @@ $stmt = $pdo->prepare("
 $stmt->execute([$user_id]);
 $id_verification = $stmt->fetch();
 
+// Get payment proof status
+$stmt = $pdo->prepare("
+    SELECT * FROM payment_proofs 
+    WHERE user_id = ? 
+    ORDER BY submitted_at DESC 
+    LIMIT 1
+");
+$stmt->execute([$user_id]);
+$payment_proof = $stmt->fetch();
+
+// Check if user can withdraw (payment proof must be approved)
+$can_withdraw = $payment_proof && $payment_proof['verification_status'] === 'approved';
+
 // Get success/error messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
@@ -645,13 +658,54 @@ unset($_SESSION['success'], $_SESSION['error']);
                     <?php echo $user['is_active'] ? 'Active' : 'Inactive'; ?>
                 </span>
             </div>
+            <div class="stat-card">
+                <h3>Payment Proof</h3>
+                <?php if ($payment_proof): ?>
+                    <span class="verification-badge <?php echo $payment_proof['verification_status']; ?>">
+                        <?php echo ucfirst($payment_proof['verification_status']); ?>
+                    </span>
+                <?php else: ?>
+                    <span class="verification-badge pending">Not Submitted</span>
+                <?php endif; ?>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Payment Address</h2>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">Send your payment to the Bitcoin wallet address below:</p>
+                <div style="background: #f5f7fa; padding: 20px; border-radius: 10px; border: 2px solid #e0e0e0; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
+                        <code style="font-size: 1.1em; font-weight: 600; color: #47763b; word-break: break-all; flex: 1; min-width: 200px;"><?php echo defined('BITCOIN_WALLET') ? BITCOIN_WALLET : 'bc1q4ry2xj5l9stya2mdcqdk368u00h23s6fr550xv'; ?></code>
+                        <button onclick="copyAddress()" style="background: #47763b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.background='#3a5f2f'" onmouseout="this.style.background='#47763b'">Copy Address</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openPaymentProofModal()" style="width: 100%;">Upload Proof of Payment</button>
+            </div>
         </div>
         
         <div class="card">
             <div class="card-header">
                 <h2>Withdrawal Request</h2>
             </div>
-            <button class="btn btn-primary" onclick="openWithdrawalModal()">Request Withdrawal</button>
+            <?php if ($can_withdraw): ?>
+                <button class="btn btn-primary" onclick="openWithdrawalModal()">Request Withdrawal</button>
+            <?php else: ?>
+                <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 15px;">
+                    <p style="margin: 0; color: #856404; font-weight: 500;">
+                        <?php if (!$payment_proof): ?>
+                            ⚠️ Please upload proof of payment first to enable withdrawals.
+                        <?php elseif ($payment_proof['verification_status'] === 'pending'): ?>
+                            ⏳ Your payment proof is pending approval. Withdrawals will be enabled once approved.
+                        <?php elseif ($payment_proof['verification_status'] === 'rejected'): ?>
+                            ❌ Your payment proof was rejected. Please upload a new proof of payment.
+                        <?php endif; ?>
+                    </p>
+                </div>
+                <button class="btn btn-primary" onclick="openWithdrawalModal()" disabled style="opacity: 0.6; cursor: not-allowed;">Request Withdrawal</button>
+            <?php endif; ?>
         </div>
         
         <div class="card">
@@ -766,12 +820,112 @@ unset($_SESSION['success'], $_SESSION['error']);
         </div>
     </div>
     
+    <!-- Payment Proof Modal -->
+    <div id="paymentProofModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">Upload Proof of Payment</h2>
+            <form id="paymentProofForm" method="POST" action="process_payment_proof" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Proof of Payment File</label>
+                    <input type="file" name="proof_file" id="proof_file_input" accept="image/jpeg,image/jpg,image/png,image/gif,application/pdf" required>
+                    <small>Upload a screenshot or photo of your payment transaction. Accepted formats: JPG, PNG, GIF, PDF (Max 5MB)</small>
+                </div>
+                <div id="paymentProofError" style="display: none; background: #fee; color: #c33; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #c33;"></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" id="paymentProofSubmitBtn" style="flex: 1;">Upload Proof</button>
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentProofModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
         function toggleMenu() {
             const navLinks = document.getElementById('navLinks');
             const menuToggle = document.querySelector('.menu-toggle');
             navLinks.classList.toggle('active');
             menuToggle.classList.toggle('active');
+        }
+        
+        function copyAddress() {
+            const address = '<?php echo defined('BITCOIN_WALLET') ? BITCOIN_WALLET : 'bc1q4ry2xj5l9stya2mdcqdk368u00h23s6fr550xv'; ?>';
+            navigator.clipboard.writeText(address).then(function() {
+                alert('Bitcoin address copied to clipboard!');
+            }, function(err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = address;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Bitcoin address copied to clipboard!');
+            });
+        }
+        
+        function openPaymentProofModal() {
+            document.getElementById('paymentProofModal').style.display = 'flex';
+            document.getElementById('paymentProofForm').reset();
+            document.getElementById('paymentProofError').style.display = 'none';
+            document.getElementById('paymentProofError').textContent = '';
+        }
+        
+        function closePaymentProofModal() {
+            document.getElementById('paymentProofModal').style.display = 'none';
+            document.getElementById('paymentProofForm').reset();
+            document.getElementById('paymentProofError').style.display = 'none';
+            document.getElementById('paymentProofError').textContent = '';
+        }
+        
+        // Handle payment proof form submission (wait for DOM to be ready)
+        const paymentProofForm = document.getElementById('paymentProofForm');
+        if (paymentProofForm) {
+            paymentProofForm.addEventListener('submit', function(e) {
+                const fileInput = document.getElementById('proof_file_input');
+                const errorDiv = document.getElementById('paymentProofError');
+                const submitBtn = document.getElementById('paymentProofSubmitBtn');
+                
+                // Reset error display
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+                
+                // Validate file is selected
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    e.preventDefault();
+                    errorDiv.textContent = 'Please select a file to upload.';
+                    errorDiv.style.display = 'block';
+                    return false;
+                }
+                
+                const file = fileInput.files[0];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                
+                // Validate file size
+                if (file.size > maxSize) {
+                    e.preventDefault();
+                    errorDiv.textContent = 'File size too large. Maximum size is 5MB.';
+                    errorDiv.style.display = 'block';
+                    return false;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+                if (!allowedTypes.includes(file.type)) {
+                    e.preventDefault();
+                    errorDiv.textContent = 'Invalid file type. Only JPG, PNG, GIF, and PDF files are allowed.';
+                    errorDiv.style.display = 'block';
+                    return false;
+                }
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Uploading...';
+                
+                // Allow form to submit normally if validation passes
+                // Don't prevent default - let the form submit
+            });
         }
         
         function openWithdrawalModal() {
@@ -783,9 +937,13 @@ unset($_SESSION['success'], $_SESSION['error']);
         }
         
         window.onclick = function(event) {
-            const modal = document.getElementById('withdrawalModal');
-            if (event.target == modal) {
+            const withdrawalModal = document.getElementById('withdrawalModal');
+            const paymentProofModal = document.getElementById('paymentProofModal');
+            if (event.target == withdrawalModal) {
                 closeWithdrawalModal();
+            }
+            if (event.target == paymentProofModal) {
+                closePaymentProofModal();
             }
         }
         
