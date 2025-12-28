@@ -1524,39 +1524,87 @@ var WIZORS_INVESTMENTS_STORAGE = {"ajax_url":"https:\/\/www.forgefund.org\/wp-ad
 document.addEventListener('DOMContentLoaded', function() {
     const contactForm = document.querySelector('.sc_form_form');
     const resultBox = document.querySelector('.sc_form_result');
+    const submitButton = contactForm ? contactForm.querySelector('button[type="submit"]') : null;
     
     if (contactForm && resultBox) {
+        // Ensure result box is visible
+        resultBox.style.display = 'none';
+        resultBox.style.marginTop = '20px';
+        resultBox.style.marginBottom = '20px';
+        
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
             // Get form data
             const formData = new FormData(this);
             
+            // Disable submit button
+            if (submitButton) {
+                submitButton.disabled = true;
+                const originalText = submitButton.textContent || submitButton.innerHTML;
+                submitButton.innerHTML = 'Enviando...';
+            }
+            
             // Show loading state
-            resultBox.innerHTML = '<div style="padding: 15px; background: #fff3cd; color: #856404; border-radius: 5px;">Enviando mensaje...</div>';
+            resultBox.innerHTML = '<div style="padding: 20px; background: #fff3cd; color: #856404; border-radius: 8px; border: 2px solid #ffc107; font-weight: 500; text-align: center; animation: fadeIn 0.3s ease-in;"><strong>⏳ Enviando su mensaje...</strong></div>';
             resultBox.style.display = 'block';
+            
+            // Scroll to result box
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             
             // Submit form via AJAX
             fetch('../contact.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    resultBox.innerHTML = '<div style="padding: 15px; background: #d4edda; color: #155724; border-radius: 5px; border: 1px solid #c3e6cb;">¡Gracias por contactarnos! Nos pondremos en contacto pronto.</div>';
+                    // Success message
+                    resultBox.innerHTML = '<div style="padding: 20px; background: #d4edda; color: #155724; border-radius: 8px; border: 2px solid #28a745; font-weight: 500; text-align: center; animation: fadeIn 0.3s ease-in;"><strong>✅ ¡Éxito!</strong><br>¡Gracias por contactarnos! Nos pondremos en contacto pronto.</div>';
                     contactForm.reset();
+                    
+                    // Auto-hide success message after 5 seconds
+                    setTimeout(function() {
+                        resultBox.style.display = 'none';
+                    }, 5000);
                 } else {
-                    resultBox.innerHTML = '<div style="padding: 15px; background: #f8d7da; color: #721c24; border-radius: 5px; border: 1px solid #f5c6cb;">' + data.message + '</div>';
+                    // Error message
+                    resultBox.innerHTML = '<div style="padding: 20px; background: #f8d7da; color: #721c24; border-radius: 8px; border: 2px solid #dc3545; font-weight: 500; text-align: center; animation: fadeIn 0.3s ease-in;"><strong>❌ ¡Error!</strong><br>' + data.message + '</div>';
+                }
+                
+                // Re-enable submit button
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = submitButton.textContent || 'Enviar Mensaje';
                 }
             })
             .catch(error => {
-                resultBox.innerHTML = '<div style="padding: 15px; background: #f8d7da; color: #721c24; border-radius: 5px; border: 1px solid #f5c6cb;">Ocurrió un error. Por favor, inténtelo de nuevo más tarde.</div>';
                 console.error('Error:', error);
+                resultBox.innerHTML = '<div style="padding: 20px; background: #f8d7da; color: #721c24; border-radius: 8px; border: 2px solid #dc3545; font-weight: 500; text-align: center; animation: fadeIn 0.3s ease-in;"><strong>❌ ¡Error!</strong><br>Ocurrió un error al enviar su mensaje. Por favor, inténtelo de nuevo más tarde o contáctenos directamente en support@forgefunding.org</div>';
+                
+                // Re-enable submit button
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = submitButton.textContent || 'Enviar Mensaje';
+                }
             });
         });
     }
 });
+
+// Add fade-in animation
+if (!document.getElementById('contact-form-styles')) {
+    const style = document.createElement('style');
+    style.id = 'contact-form-styles';
+    style.textContent = '@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }';
+    document.head.appendChild(style);
+}
 </script>
 <script type="text/javascript" id="mediaelement-core-js-before">
 /* <![CDATA[ */
