@@ -1392,7 +1392,7 @@ data-icon_height=""
 ></div></div></div></div></div></div></div><div class="vc_row-full-width vc_clearfix"></div><div class="vc_row wpb_row vc_row-fluid shape_divider_top-none shape_divider_bottom-none"><div class="wpb_column vc_column_container vc_col-sm-3 sc_layouts_column_icons_position_left"><div class="vc_column-inner"><div class="wpb_wrapper"></div></div></div><div class="wpb_column vc_column_container vc_col-sm-6 sc_layouts_column_icons_position_left"><div class="vc_column-inner"><div class="wpb_wrapper"><div class="vc_empty_space  vc_custom_1484299110101 sc_height_huge"   style="height: 32px"><span class="vc_empty_space_inner"></span></div><a id="sc_anchor_message"	title=""  class="sc_anchor sc_anchor_default" data-vc-icon="" data-url=""></a><div
 class="sc_form sc_form_default sc_align_center"
 ><span class="sc_item_subtitle sc_form_subtitle sc_align_center sc_item_subtitle_above sc_item_title_style_default">Have a Question?</span><h2 class="sc_item_title sc_form_title sc_align_center sc_item_title_style_default"
-><span class="sc_item_title_text">Drop a Line</span></h2><form class="sc_form_form " method="post" action="https://www.forgefund.org/wp-admin/admin-ajax.php"><div class="sc_form_details trx_addons_columns_wrap"><div class="trx_addons_column-1_2"><div class="sc_form_field sc_form_field_name sc_form_field_text required"><div class="sc_form_field_wrap"><input type="text" 
+><span class="sc_item_title_text">Drop a Line</span></h2><form class="sc_form_form " method="post" action="../contact.php"><div class="sc_form_details trx_addons_columns_wrap"><div class="trx_addons_column-1_2"><div class="sc_form_field sc_form_field_name sc_form_field_text required"><div class="sc_form_field_wrap"><input type="text" 
 name="name"
 id="name_1388954926"
 value="" aria-required="true" placeholder="Your name"></div></div></div><div class="trx_addons_column-1_2"><div class="sc_form_field sc_form_field_email sc_form_field_text required"><div class="sc_form_field_wrap"><input type="text" 
@@ -1519,6 +1519,45 @@ var WIZORS_INVESTMENTS_STORAGE = {"ajax_url":"https:\/\/www.forgefund.org\/wp-ad
 /* ]]> */
 </script>
 <script type="text/javascript" defer="defer" src="../wp-content/themes/wizors-investments/js/__scripts.js" id="wizors-investments-init-js"></script>
+<script>
+// Handle contact form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const contactForm = document.querySelector('.sc_form_form');
+    const resultBox = document.querySelector('.sc_form_result');
+    
+    if (contactForm && resultBox) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            // Show loading state
+            resultBox.innerHTML = '<div style="padding: 15px; background: #fff3cd; color: #856404; border-radius: 5px;">Sending message...</div>';
+            resultBox.style.display = 'block';
+            
+            // Submit form via AJAX
+            fetch('../contact.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultBox.innerHTML = '<div style="padding: 15px; background: #d4edda; color: #155724; border-radius: 5px; border: 1px solid #c3e6cb;">' + data.message + '</div>';
+                    contactForm.reset();
+                } else {
+                    resultBox.innerHTML = '<div style="padding: 15px; background: #f8d7da; color: #721c24; border-radius: 5px; border: 1px solid #f5c6cb;">' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                resultBox.innerHTML = '<div style="padding: 15px; background: #f8d7da; color: #721c24; border-radius: 5px; border: 1px solid #f5c6cb;">An error occurred. Please try again later.</div>';
+                console.error('Error:', error);
+            });
+        });
+    }
+});
+</script>
 <script type="text/javascript" id="mediaelement-core-js-before">
 /* <![CDATA[ */
 var mejsL10n = {"language":"en","strings":{"mejs.download-file":"Download File","mejs.install-flash":"You are using a browser that does not have Flash player enabled or installed. Please turn on your Flash player plugin or download the latest version from https:\/\/get.adobe.com\/flashplayer\/","mejs.fullscreen":"Fullscreen","mejs.play":"Play","mejs.pause":"Pause","mejs.time-slider":"Time Slider","mejs.time-help-text":"Use Left\/Right Arrow keys to advance one second, Up\/Down arrows to advance ten seconds.","mejs.live-broadcast":"Live Broadcast","mejs.volume-help-text":"Use Up\/Down Arrow keys to increase or decrease volume.","mejs.unmute":"Unmute","mejs.mute":"Mute","mejs.volume-slider":"Volume Slider","mejs.video-player":"Video Player","mejs.audio-player":"Audio Player","mejs.captions-subtitles":"Captions\/Subtitles","mejs.captions-chapters":"Chapters","mejs.none":"None","mejs.afrikaans":"Afrikaans","mejs.albanian":"Albanian","mejs.arabic":"Arabic","mejs.belarusian":"Belarusian","mejs.bulgarian":"Bulgarian","mejs.catalan":"Catalan","mejs.chinese":"Chinese","mejs.chinese-simplified":"Chinese (Simplified)","mejs.chinese-traditional":"Chinese (Traditional)","mejs.croatian":"Croatian","mejs.czech":"Czech","mejs.danish":"Danish","mejs.dutch":"Dutch","mejs.english":"English","mejs.estonian":"Estonian","mejs.filipino":"Filipino","mejs.finnish":"Finnish","mejs.french":"French","mejs.galician":"Galician","mejs.german":"German","mejs.greek":"Greek","mejs.haitian-creole":"Haitian Creole","mejs.hebrew":"Hebrew","mejs.hindi":"Hindi","mejs.hungarian":"Hungarian","mejs.icelandic":"Icelandic","mejs.indonesian":"Indonesian","mejs.irish":"Irish","mejs.italian":"Italian","mejs.japanese":"Japanese","mejs.korean":"Korean","mejs.latvian":"Latvian","mejs.lithuanian":"Lithuanian","mejs.macedonian":"Macedonian","mejs.malay":"Malay","mejs.maltese":"Maltese","mejs.norwegian":"Norwegian","mejs.persian":"Persian","mejs.polish":"Polish","mejs.portuguese":"Portuguese","mejs.romanian":"Romanian","mejs.russian":"Russian","mejs.serbian":"Serbian","mejs.slovak":"Slovak","mejs.slovenian":"Slovenian","mejs.spanish":"Spanish","mejs.swahili":"Swahili","mejs.swedish":"Swedish","mejs.tagalog":"Tagalog","mejs.thai":"Thai","mejs.turkish":"Turkish","mejs.ukrainian":"Ukrainian","mejs.vietnamese":"Vietnamese","mejs.welsh":"Welsh","mejs.yiddish":"Yiddish"}};
