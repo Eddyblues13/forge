@@ -62,6 +62,36 @@ $pending_withdrawal_requests = $pdo->query("
     ORDER BY wr.created_at ASC
 ")->fetchAll();
 
+// Get approved/rejected ID verifications
+$processed_ids = $pdo->query("
+    SELECT iv.*, u.first_name, u.last_name, u.email
+    FROM id_verifications iv
+    JOIN users u ON iv.user_id = u.id
+    WHERE iv.verification_status IN ('approved', 'rejected')
+    ORDER BY iv.verified_at DESC
+    LIMIT 50
+")->fetchAll();
+
+// Get approved/rejected payment proofs
+$processed_payment_proofs = $pdo->query("
+    SELECT pp.*, u.first_name, u.last_name, u.email
+    FROM payment_proofs pp
+    JOIN users u ON pp.user_id = u.id
+    WHERE pp.verification_status IN ('approved', 'rejected')
+    ORDER BY pp.verified_at DESC
+    LIMIT 50
+")->fetchAll();
+
+// Get approved/rejected withdrawal requests
+$processed_withdrawals = $pdo->query("
+    SELECT wr.*, u.first_name, u.last_name, u.email, u.account_balance
+    FROM withdrawal_requests wr
+    JOIN users u ON wr.user_id = u.id
+    WHERE wr.status IN ('approved', 'rejected')
+    ORDER BY wr.processed_at DESC
+    LIMIT 50
+")->fetchAll();
+
 // Get success/error messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
@@ -670,6 +700,46 @@ unset($_SESSION['success'], $_SESSION['error']);
 
         <div class="card">
             <div class="card-header">
+                <h2>Processed ID Verifications</h2>
+            </div>
+            <?php if (empty($processed_ids)): ?>
+                <p style="text-align: center; color: #666; padding: 40px;">No processed ID verifications yet.</p>
+            <?php else: ?>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>ID Type</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Reviewed</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($processed_ids as $id_ver): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($id_ver['first_name'] . ' ' . $id_ver['last_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($id_ver['email']); ?></td>
+                                    <td><?php echo ucfirst(str_replace('_', ' ', $id_ver['id_type'])); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($id_ver['submitted_at'])); ?></td>
+                                    <td><span class="status <?php echo $id_ver['verification_status']; ?>"><?php echo ucfirst($id_ver['verification_status']); ?></span></td>
+                                    <td><?php echo $id_ver['verified_at'] ? date('M d, Y', strtotime($id_ver['verified_at'])) : '—'; ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" onclick="viewID(<?php echo $id_ver['id']; ?>, '<?php echo htmlspecialchars('../view_file.php?file=' . urlencode($id_ver['id_file_path']), ENT_QUOTES); ?>')">View</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
                 <h2>Pending Payment Proofs</h2>
             </div>
             <?php if (empty($pending_payment_proof_list)): ?>
@@ -695,6 +765,44 @@ unset($_SESSION['success'], $_SESSION['error']);
                                         <button class="btn btn-sm btn-primary" onclick="viewPaymentProof(<?php echo $proof['id']; ?>, '<?php echo htmlspecialchars('../view_file?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">View</button>
                                         <button class="btn btn-sm btn-success" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'approved', '<?php echo htmlspecialchars('../view_file?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Approve</button>
                                         <button class="btn btn-sm btn-danger" onclick="verifyPaymentProof(<?php echo $proof['id']; ?>, 'rejected', '<?php echo htmlspecialchars('../view_file?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">Reject</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Processed Payment Proofs</h2>
+            </div>
+            <?php if (empty($processed_payment_proofs)): ?>
+                <p style="text-align: center; color: #666; padding: 40px;">No processed payment proofs yet.</p>
+            <?php else: ?>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Reviewed</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($processed_payment_proofs as $proof): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($proof['first_name'] . ' ' . $proof['last_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($proof['email']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($proof['submitted_at'])); ?></td>
+                                    <td><span class="status <?php echo $proof['verification_status']; ?>"><?php echo ucfirst($proof['verification_status']); ?></span></td>
+                                    <td><?php echo $proof['verified_at'] ? date('M d, Y', strtotime($proof['verified_at'])) : '—'; ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" onclick="viewPaymentProof(<?php echo $proof['id']; ?>, '<?php echo htmlspecialchars('../view_file?file=' . urlencode($proof['proof_file_path']), ENT_QUOTES); ?>')">View</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -733,6 +841,46 @@ unset($_SESSION['success'], $_SESSION['error']);
                                         <button class="btn btn-sm btn-primary" onclick="viewWithdrawal(<?php echo $withdrawal['id']; ?>)">View</button>
                                         <button class="btn btn-sm btn-success" onclick="processWithdrawal(<?php echo $withdrawal['id']; ?>, 'approved')">Approve</button>
                                         <button class="btn btn-sm btn-danger" onclick="processWithdrawal(<?php echo $withdrawal['id']; ?>, 'rejected')">Reject</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Processed Withdrawal Requests</h2>
+            </div>
+            <?php if (empty($processed_withdrawals)): ?>
+                <p style="text-align: center; color: #666; padding: 40px;">No processed withdrawal requests yet.</p>
+            <?php else: ?>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Requested</th>
+                                <th>Status</th>
+                                <th>Processed</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($processed_withdrawals as $withdrawal): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($withdrawal['first_name'] . ' ' . $withdrawal['last_name']); ?></td>
+                                    <td><?php echo formatCurrency($withdrawal['amount']); ?></td>
+                                    <td><?php echo ucfirst(str_replace('_', ' ', $withdrawal['withdrawal_method'])); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($withdrawal['created_at'])); ?></td>
+                                    <td><span class="status <?php echo $withdrawal['status']; ?>"><?php echo ucfirst($withdrawal['status']); ?></span></td>
+                                    <td><?php echo $withdrawal['processed_at'] ? date('M d, Y', strtotime($withdrawal['processed_at'])) : '—'; ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" onclick="viewWithdrawal(<?php echo $withdrawal['id']; ?>)">View</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
