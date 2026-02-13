@@ -948,7 +948,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             const formData = new FormData(this);
             formData.append('action', 'verify_id');
 
-            fetch('actions', {
+            fetch('actions.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -980,7 +980,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             const formData = new FormData(this);
             formData.append('action', 'fund_account');
 
-            fetch('actions', {
+            fetch('actions.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1018,7 +1018,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             const formData = new FormData(this);
             formData.append('action', 'deduct_account');
 
-            fetch('actions', {
+            fetch('actions.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1043,7 +1043,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             formData.append('id', id);
             formData.append('status', status);
 
-            fetch('actions', {
+            fetch('actions.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1134,7 +1134,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Processing...';
 
-                fetch('actions', {
+                fetch('actions.php', {
                         method: 'POST',
                         body: formData
                     })
