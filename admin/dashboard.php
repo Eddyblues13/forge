@@ -88,7 +88,7 @@ $processed_withdrawals = $pdo->query("
     FROM withdrawal_requests wr
     JOIN users u ON wr.user_id = u.id
     WHERE wr.status IN ('approved', 'rejected')
-    ORDER BY wr.processed_at DESC
+    ORDER BY wr.updated_at DESC
     LIMIT 50
 ")->fetchAll();
 
@@ -878,7 +878,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                                     <td><?php echo ucfirst(str_replace('_', ' ', $withdrawal['withdrawal_method'])); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($withdrawal['created_at'])); ?></td>
                                     <td><span class="status <?php echo $withdrawal['status']; ?>"><?php echo ucfirst($withdrawal['status']); ?></span></td>
-                                    <td><?php echo $withdrawal['processed_at'] ? date('M d, Y', strtotime($withdrawal['processed_at'])) : '—'; ?></td>
+                                    <td><?php echo $withdrawal['updated_at'] ? date('M d, Y', strtotime($withdrawal['updated_at'])) : '—'; ?></td>
                                     <td>
                                         <button class="btn btn-sm btn-primary" onclick="viewWithdrawal(<?php echo $withdrawal['id']; ?>)">View</button>
                                     </td>
