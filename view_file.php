@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Secure File Viewer
  * Serves uploaded ID documents and payment proofs securely
@@ -31,20 +32,21 @@ if (strpos($file_path, 'uploads/ids/') !== 0 && strpos($file_path, 'uploads/paym
 }
 
 // Get full file path
-$full_path = realpath(dirname(__DIR__) . '/' . $file_path);
+$full_path = realpath(__DIR__ . '/' . $file_path);
 
 // Check if file exists and is within allowed directories
-$allowed_id_dir = realpath(ID_UPLOAD_DIR);
-$allowed_proof_dir = realpath(PAYMENT_PROOF_UPLOAD_DIR);
+$allowed_id_dir = realpath(ID_UPLOAD_DIR) ?: ID_UPLOAD_DIR;
+$allowed_proof_dir = realpath(PAYMENT_PROOF_UPLOAD_DIR) ?: PAYMENT_PROOF_UPLOAD_DIR;
 
 if (!$full_path || !file_exists($full_path) || !is_file($full_path)) {
     http_response_code(404);
-    die('File not found');
+    die('File not found. Looking for: ' . __DIR__ . '/' . $file_path);
 }
 
 // Verify the file is within allowed directories
-if (($allowed_id_dir && strpos($full_path, $allowed_id_dir) === 0) || 
-    ($allowed_proof_dir && strpos($full_path, $allowed_proof_dir) === 0)) {
+if (($allowed_id_dir && strpos($full_path, $allowed_id_dir) === 0) ||
+    ($allowed_proof_dir && strpos($full_path, $allowed_proof_dir) === 0)
+) {
     // File is in allowed directory, proceed
 } else {
     http_response_code(403);

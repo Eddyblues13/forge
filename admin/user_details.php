@@ -3,7 +3,7 @@ require_once '../config/config.php';
 
 // Check if admin is logged in
 if (!isLoggedIn() || !isAdmin()) {
-            redirect('login.php');
+    redirect('login.php');
 }
 
 $user_id = intval($_GET['id'] ?? 0);
@@ -50,6 +50,7 @@ $id_verifications = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,20 +61,20 @@ $id_verifications = $stmt->fetchAll();
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f7fa;
             color: #333;
         }
-        
+
         .header {
             background: linear-gradient(135deg, #47763b 0%, #3a5f2f 100%);
             color: white;
             padding: 20px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
@@ -82,17 +83,17 @@ $id_verifications = $stmt->fetchAll();
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .logo h1 {
             font-size: 1.8em;
             font-weight: 700;
         }
-        
+
         .nav-links {
             display: flex;
             gap: 15px;
         }
-        
+
         .nav-links a {
             color: white;
             text-decoration: none;
@@ -100,62 +101,62 @@ $id_verifications = $stmt->fetchAll();
             border-radius: 5px;
             transition: background 0.3s;
         }
-        
+
         .nav-links a:hover {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 30px auto;
             padding: 0 20px;
         }
-        
+
         .card {
             background: white;
             border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 25px;
             margin-bottom: 30px;
         }
-        
+
         .card-header {
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #f0f0f0;
         }
-        
+
         .card-header h2 {
             color: #333;
             font-size: 1.5em;
         }
-        
+
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
-        
+
         .info-item {
             padding: 15px;
             background: #f8f9fa;
             border-radius: 8px;
         }
-        
+
         .info-item label {
             display: block;
             font-size: 0.85em;
             color: #666;
             margin-bottom: 5px;
         }
-        
+
         .info-item .value {
             font-size: 1.1em;
             font-weight: 600;
             color: #333;
         }
-        
+
         .btn {
             padding: 10px 20px;
             border: none;
@@ -167,51 +168,54 @@ $id_verifications = $stmt->fetchAll();
             text-decoration: none;
             display: inline-block;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #47763b 0%, #3a5f2f 100%);
             color: white;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        
-        th, td {
+
+        th,
+        td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #f0f0f0;
         }
-        
+
         th {
             background: #f8f9fa;
             font-weight: 600;
             color: #666;
         }
-        
+
         .status {
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: 600;
         }
-        
+
         .status.pending {
             background: #fff3cd;
             color: #856404;
         }
-        
-        .status.approved, .status.completed {
+
+        .status.approved,
+        .status.completed {
             background: #d4edda;
             color: #155724;
         }
-        
-        .status.rejected, .status.failed {
+
+        .status.rejected,
+        .status.failed {
             background: #f8d7da;
             color: #721c24;
         }
-        
+
         @media (max-width: 768px) {
             .info-grid {
                 grid-template-columns: 1fr;
@@ -219,6 +223,7 @@ $id_verifications = $stmt->fetchAll();
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <div class="header-content">
@@ -234,12 +239,13 @@ $id_verifications = $stmt->fetchAll();
             </div>
         </div>
     </div>
-    
+
     <div class="container">
         <div class="card">
             <div class="card-header">
                 <h2>User Information</h2>
                 <button class="btn btn-primary" onclick="fundAccount(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name'], ENT_QUOTES); ?>', <?php echo $user['account_balance']; ?>)">Fund Account</button>
+                <button class="btn" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); color: white; margin-left: 10px;" onclick="deductAccount(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name'], ENT_QUOTES); ?>', <?php echo $user['account_balance']; ?>)">Deduct Fund</button>
             </div>
             <div class="info-grid">
                 <div class="info-item">
@@ -277,7 +283,7 @@ $id_verifications = $stmt->fetchAll();
                 <div class="info-item">
                     <label>City, State, Zip</label>
                     <div class="value">
-                        <?php 
+                        <?php
                         $location = [];
                         if ($user['city']) $location[] = $user['city'];
                         if ($user['state']) $location[] = $user['state'];
@@ -292,7 +298,7 @@ $id_verifications = $stmt->fetchAll();
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <div class="card-header">
                 <h2>ID Verifications</h2>
@@ -324,7 +330,7 @@ $id_verifications = $stmt->fetchAll();
                 </table>
             <?php endif; ?>
         </div>
-        
+
         <div class="card">
             <div class="card-header">
                 <h2>Transactions</h2>
@@ -360,7 +366,7 @@ $id_verifications = $stmt->fetchAll();
                 </table>
             <?php endif; ?>
         </div>
-        
+
         <div class="card">
             <div class="card-header">
                 <h2>Withdrawal Requests</h2>
@@ -393,7 +399,7 @@ $id_verifications = $stmt->fetchAll();
             <?php endif; ?>
         </div>
     </div>
-    
+
     <!-- Fund Account Modal -->
     <div id="fundModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
         <div class="modal-content" style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%;">
@@ -421,7 +427,35 @@ $id_verifications = $stmt->fetchAll();
             </form>
         </div>
     </div>
-    
+
+    <!-- Deduct Account Modal -->
+    <div id="deductModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%;">
+            <h2 style="margin-bottom: 20px; color: #dc3545;">Deduct From Account</h2>
+            <form id="deductForm">
+                <input type="hidden" id="deduct_user_id" name="user_id">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">User: <span id="deduct_user_name"></span></label>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Current Balance: <span id="deduct_current_balance"></span></label>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Amount to Deduct</label>
+                    <input type="number" id="deduct_amount" name="amount" step="0.01" min="0.01" required style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Reason / Description</label>
+                    <textarea id="deduct_description" name="description" rows="3" required style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="Enter reason for deduction..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn" style="flex: 1; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9em; font-weight: 600; cursor: pointer;">Deduct Fund</button>
+                    <button type="button" class="btn" onclick="closeDeductModal()" style="flex: 1; background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9em; font-weight: 600; cursor: pointer;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function fundAccount(userId, userName, currentBalance) {
             document.getElementById('fund_user_id').value = userId;
@@ -431,36 +465,80 @@ $id_verifications = $stmt->fetchAll();
             document.getElementById('fund_description').value = '';
             document.getElementById('fundModal').style.display = 'flex';
         }
-        
+
         function closeFundModal() {
             document.getElementById('fundModal').style.display = 'none';
         }
-        
+
         document.getElementById('fundForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             formData.append('action', 'fund_account');
-            
+
             fetch('actions.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message || 'Error funding account');
-                }
-            });
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Error funding account');
+                    }
+                });
         });
-        
+
+        function deductAccount(userId, userName, currentBalance) {
+            document.getElementById('deduct_user_id').value = userId;
+            document.getElementById('deduct_user_name').textContent = userName;
+            document.getElementById('deduct_current_balance').textContent = '$' + parseFloat(currentBalance).toFixed(2);
+            document.getElementById('deduct_amount').value = '';
+            document.getElementById('deduct_amount').max = currentBalance;
+            document.getElementById('deduct_description').value = '';
+            document.getElementById('deductModal').style.display = 'flex';
+        }
+
+        function closeDeductModal() {
+            document.getElementById('deductModal').style.display = 'none';
+        }
+
+        document.getElementById('deductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!confirm('Are you sure you want to deduct this amount from the user\'s account?')) {
+                return;
+            }
+
+            const formData = new FormData(this);
+            formData.append('action', 'deduct_account');
+
+            fetch('actions.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Error deducting from account');
+                    }
+                });
+        });
+
         window.onclick = function(event) {
             const fundModal = document.getElementById('fundModal');
+            const deductModal = document.getElementById('deductModal');
             if (event.target == fundModal) {
                 closeFundModal();
+            }
+            if (event.target == deductModal) {
+                closeDeductModal();
             }
         }
     </script>
 </body>
+
 </html>
